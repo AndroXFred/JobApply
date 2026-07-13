@@ -9,6 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from jobapply import config
+from jobapply.agents.applier import run_applier
 from jobapply.agents.finder import run_finder
 from jobapply.agents.tailor import run_tailor
 
@@ -18,11 +19,12 @@ scheduler = AsyncIOScheduler()
 PIPELINE_JOB_ID = "pipeline"
 
 
-def run_pipeline_job() -> dict[str, dict[str, int]] | None:
-    """Finder then tailor in one run, so a scheduled/manual trigger takes a
-    job all the way from 'found' to 'pending_approval' (with an ntfy push)
-    without a separate step - only Agent 3's submission stays gated on your
-    explicit approval."""
+def run_pipeline_job() -> dict[str, dict[str, int] | None]:
+    """Finder, then tailor, then applier, in one run. A job goes from
+    'found' all the way to 'pending_approval' (with an ntfy push)
+    unattended; applier only ever acts on jobs already in 'approved' status
+    - i.e. ones you've explicitly tapped Approve on - so the human review
+    gate stays intact even though this chains everything after it."""
     try:
         finder_stats = run_finder()
         logger.info("finder run complete: %s", finder_stats)
@@ -37,9 +39,14 @@ def run_pipeline_job() -> dict[str, dict[str, int]] | None:
         logger.exception("tailor run failed")
         tailor_stats = None
 
-    if finder_stats is None and tailor_stats is None:
-        return None
-    return {"finder": finder_stats, "tailor": tailor_stats}
+    try:
+        applier_stats = run_applier()
+        logger.info("applier run complete: %s", applier_stats)
+    except Exception:
+        logger.exception("applier run failed")
+        applier_stats = None
+
+    return {"finder": finder_stats, "tailor": tailor_stats, "applier": applier_stats}
 
 
 def reschedule_finder() -> None:

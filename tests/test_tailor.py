@@ -10,7 +10,7 @@ from jobapply.llm.schemas import ClaimVerdict, FabricationCheckResult
 from jobapply.resume.schema import ContactInfo, ExperienceEntry, ResumeDocument
 
 MASTER = ResumeDocument(
-    contact=ContactInfo(name="Test Person", email="t@example.com"),
+    contact=ContactInfo(first_name="Test", last_name="Person", email="t@example.com", phone="+1 555 555 5555"),
     summary="Senior backend engineer with 8 years of Python experience.",
     skills=["Python", "FastAPI", "PostgreSQL"],
     experience=[

@@ -6,9 +6,9 @@
 </head>
 <body>
   <header>
-    <h1>{{ resume.contact.name }}</h1>
+    <h1>{{ resume.contact.first_name }} {{ resume.contact.last_name }}</h1>
     <p class="contact-line">
-      {{ resume.contact.email }}{% if resume.contact.location %} &middot; {{ resume.contact.location }}{% endif %}
+      {{ resume.contact.email }}{% if resume.contact.phone %} &middot; {{ resume.contact.phone }}{% endif %}{% if resume.contact.location %} &middot; {{ resume.contact.location }}{% endif %}
       {% for link in resume.contact.links %} &middot; {{ link }}{% endfor %}
     </p>
   </header>

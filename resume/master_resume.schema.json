@@ -2,13 +2,29 @@
   "$defs": {
     "ContactInfo": {
       "properties": {
-        "name": {
-          "title": "Name",
+        "first_name": {
+          "title": "First Name",
+          "type": "string"
+        },
+        "last_name": {
+          "title": "Last Name",
           "type": "string"
         },
         "email": {
           "title": "Email",
           "type": "string"
+        },
+        "phone": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Phone"
         },
         "location": {
           "anyOf": [
@@ -31,7 +47,8 @@
         }
       },
       "required": [
-        "name",
+        "first_name",
+        "last_name",
         "email"
       ],
       "title": "ContactInfo",

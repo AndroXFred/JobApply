@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 
-from jobapply.db.models import Job
+from jobapply.db.models import Application, Job
 from jobapply.db.session import session_scope
 from jobapply.web import auth
 from jobapply.web.templates_env import templates
@@ -91,6 +91,7 @@ def job_detail(request: Request, job_id: int, user_id: int = Depends(auth.requir
 
         evaluations = sorted(job.evaluations, key=lambda e: e.created_at, reverse=True)
         tailored_resumes = sorted(job.tailored_resumes, key=lambda t: t.created_at, reverse=True)
+        applications = sorted(job.applications, key=lambda a: a.id, reverse=True)
         history = sorted(job.status_history, key=lambda h: h.changed_at, reverse=True)
 
         data = {
@@ -133,6 +134,18 @@ def job_detail(request: Request, job_id: int, user_id: int = Depends(auth.requir
                 }
                 for t in tailored_resumes
             ],
+            "applications": [
+                {
+                    "id": a.id,
+                    "ats_platform": a.ats_platform,
+                    "status": a.status,
+                    "submitted_at": a.submitted_at,
+                    "has_screenshot": bool(a.confirmation_screenshot_path),
+                    "confirmation_text": a.confirmation_text,
+                    "error_message": a.error_message,
+                }
+                for a in applications
+            ],
             "history": [
                 {
                     "from_status": h.from_status,
@@ -160,3 +173,14 @@ def job_resume_pdf(job_id: int, user_id: int = Depends(auth.require_login)):
         pdf_path = latest.pdf_path
 
     return FileResponse(pdf_path, media_type="application/pdf", filename=f"resume_job_{job_id}.pdf")
+
+
+@router.get("/applications/{application_id}/screenshot.png")
+def application_screenshot(application_id: int, user_id: int = Depends(auth.require_login)):
+    with session_scope() as session:
+        application = session.get(Application, application_id)
+        if application is None or not application.confirmation_screenshot_path:
+            raise HTTPException(status_code=404, detail="No screenshot available for this application")
+        screenshot_path = application.confirmation_screenshot_path
+
+    return FileResponse(screenshot_path, media_type="image/png")

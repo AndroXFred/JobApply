@@ -7,7 +7,7 @@ from jobapply.resume.schema import ContactInfo, ExperienceEntry, ResumeDocument
 def test_render_resume_pdf_produces_a_pdf_file(tmp_path, monkeypatch):
     monkeypatch.setattr("jobapply.resume.render.OUTPUT_DIR", tmp_path)
     resume = ResumeDocument(
-        contact=ContactInfo(name="Jane Doe", email="jane@example.com"),
+        contact=ContactInfo(first_name="Jane", last_name="Doe", email="jane@example.com"),
         summary="Engineer.",
         skills=["Python"],
         experience=[

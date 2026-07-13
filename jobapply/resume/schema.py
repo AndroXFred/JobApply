@@ -7,10 +7,16 @@ from pydantic import BaseModel, Field
 
 
 class ContactInfo(BaseModel):
-    name: str
+    first_name: str
+    last_name: str
     email: str
+    phone: str | None = None
     location: str | None = None
     links: list[str] = Field(default_factory=list)
+
+    @property
+    def full_name(self) -> str:
+        return f"{self.first_name} {self.last_name}"
 
 
 class ExperienceEntry(BaseModel):

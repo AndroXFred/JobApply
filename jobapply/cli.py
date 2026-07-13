@@ -25,6 +25,13 @@ def _cmd_run_tailor(args: argparse.Namespace) -> None:
     print(f"Tailor run complete: {stats}")
 
 
+def _cmd_run_applier(args: argparse.Namespace) -> None:
+    from jobapply.agents.applier import run_applier
+
+    stats = run_applier(job_id=args.job_id)
+    print(f"Applier run complete: {stats}")
+
+
 def _cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -44,6 +51,10 @@ def main() -> None:
     tailor_parser = subparsers.add_parser("run-tailor", help="Run Agent 2 + 2b once (tailor + audit resumes)")
     tailor_parser.add_argument("--job-id", type=int, default=None, help="Tailor only this job (default: all pending_tailor jobs)")
     tailor_parser.set_defaults(func=_cmd_run_tailor)
+
+    applier_parser = subparsers.add_parser("run-applier", help="Run Agent 3 once (submit approved applications)")
+    applier_parser.add_argument("--job-id", type=int, default=None, help="Apply only to this job (default: all approved jobs)")
+    applier_parser.set_defaults(func=_cmd_run_applier)
 
     serve_parser = subparsers.add_parser("serve", help="Run the web dashboard + scheduler")
     serve_parser.add_argument("--host", default="0.0.0.0")

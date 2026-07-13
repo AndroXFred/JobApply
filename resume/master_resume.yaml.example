@@ -1,14 +1,16 @@
 # Copy this file to resume/master_resume.yaml and fill in your real resume.
 # master_resume.yaml is gitignored - it's personal data, never committed.
 #
-# Phase 1 (Agent 1) reads this as free-form context for fit scoring.
-# Phase 2 (Agent 2) will formalize this into a validated schema for
-# resume-tailoring and PDF rendering - keep it reasonably structured now
-# so that transition is smooth, but the exact shape isn't load-bearing yet.
+# Validated against jobapply/resume/schema.py (ResumeDocument). Used by:
+# Agent 1 (free-form context for fit scoring), Agent 2/2b (tailoring +
+# fabrication audit), the PDF renderer, and Agent 3 (first_name/last_name/
+# phone/email get filled into real application forms - keep these accurate).
 
 contact:
-  name: "Your Name"
+  first_name: "Your"
+  last_name: "Name"
   email: "you@example.com"
+  phone: "+1 555 555 5555"
   location: "City, Country"
   links:
     - "https://linkedin.com/in/you"
