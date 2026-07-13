@@ -14,8 +14,9 @@ from pathlib import Path
 from sqlalchemy import select
 
 from jobapply import config
-from jobapply.db.models import Evaluation, Job, StatusHistory
+from jobapply.db.models import Evaluation, Job
 from jobapply.db.session import session_scope
+from jobapply.db.status import record_status
 from jobapply.llm.client import OpenAICompatClient, get_client_for
 from jobapply.llm.schemas import JobEvaluation
 from jobapply.resume.loader import load_master_resume_text
@@ -38,13 +39,6 @@ def _utcnow() -> dt.datetime:
 
 def _normalized_key(raw: RawJob) -> str:
     return "|".join(part.strip().lower() for part in (raw.company, raw.title, raw.remote_type or "unknown"))
-
-
-def _record_status(session, job: Job, to_status: str, changed_by: str, note: str | None = None) -> None:
-    session.add(
-        StatusHistory(job_id=job.id, from_status=job.status, to_status=to_status, changed_by=changed_by, note=note)
-    )
-    job.status = to_status
 
 
 def _upsert_job(session, raw: RawJob) -> tuple[int, bool]:
@@ -78,7 +72,7 @@ def _upsert_job(session, raw: RawJob) -> tuple[int, bool]:
     )
     session.add(job)
     session.flush()
-    _record_status(session, job, "new", changed_by="agent1", note=f"found via {raw.source}")
+    record_status(session, job, "new", changed_by="agent1", note=f"found via {raw.source}")
     return job.id, True
 
 
@@ -122,7 +116,7 @@ def run_finder() -> dict[str, int]:
                     result = _evaluate_job(client, model, job, resume_text)
                 except Exception:
                     logger.exception("evaluation failed for job %s", job_id)
-                    _record_status(session, job, "evaluation_failed", changed_by="agent1")
+                    record_status(session, job, "evaluation_failed", changed_by="agent1")
                     stats["failed"] += 1
                     continue
 
@@ -139,10 +133,10 @@ def run_finder() -> dict[str, int]:
                 )
                 stats["evaluated"] += 1
                 if result.recommendation == "pursue" and result.fit_score >= threshold:
-                    _record_status(session, job, "pending_tailor", changed_by="agent1")
+                    record_status(session, job, "pending_tailor", changed_by="agent1")
                     stats["pursue"] += 1
                 else:
-                    _record_status(session, job, "rejected", changed_by="agent1")
+                    record_status(session, job, "rejected", changed_by="agent1")
                     stats["rejected"] += 1
 
     return stats

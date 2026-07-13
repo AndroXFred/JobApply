@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 
 from jobapply.db.models import Job
@@ -35,6 +36,7 @@ def job_list(
     request: Request,
     status: str | None = Query(None),
     min_score: int | None = Query(None),
+    triggered: str | None = Query(None),
     user_id: int = Depends(auth.require_login),
 ):
     with session_scope() as session:
@@ -75,6 +77,7 @@ def job_list(
             "status_options": STATUS_OPTIONS,
             "status_filter": status,
             "min_score": min_score,
+            "triggered": triggered == "1",
         },
     )
 
@@ -87,6 +90,7 @@ def job_detail(request: Request, job_id: int, user_id: int = Depends(auth.requir
             raise HTTPException(status_code=404, detail="Job not found")
 
         evaluations = sorted(job.evaluations, key=lambda e: e.created_at, reverse=True)
+        tailored_resumes = sorted(job.tailored_resumes, key=lambda t: t.created_at, reverse=True)
         history = sorted(job.status_history, key=lambda h: h.changed_at, reverse=True)
 
         data = {
@@ -118,6 +122,17 @@ def job_detail(request: Request, job_id: int, user_id: int = Depends(auth.requir
                 }
                 for e in evaluations
             ],
+            "tailored_resumes": [
+                {
+                    "id": t.id,
+                    "created_at": t.created_at,
+                    "has_pdf": bool(t.pdf_path),
+                    "fabrication_check_passed": t.fabrication_check_passed,
+                    "fabrication_check_notes": t.fabrication_check_notes,
+                    "llm_model": t.llm_model,
+                }
+                for t in tailored_resumes
+            ],
             "history": [
                 {
                     "from_status": h.from_status,
@@ -131,3 +146,17 @@ def job_detail(request: Request, job_id: int, user_id: int = Depends(auth.requir
         }
 
     return templates.TemplateResponse(request, "job_detail.html", {"user_id": user_id, **data})
+
+
+@router.get("/jobs/{job_id}/resume.pdf")
+def job_resume_pdf(job_id: int, user_id: int = Depends(auth.require_login)):
+    with session_scope() as session:
+        job = session.get(Job, job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="Job not found")
+        latest = max(job.tailored_resumes, key=lambda t: t.created_at, default=None)
+        if latest is None or not latest.pdf_path:
+            raise HTTPException(status_code=404, detail="No tailored resume PDF available for this job")
+        pdf_path = latest.pdf_path
+
+    return FileResponse(pdf_path, media_type="application/pdf", filename=f"resume_job_{job_id}.pdf")

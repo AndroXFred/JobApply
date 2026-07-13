@@ -5,6 +5,13 @@ https://ai.google.dev/gemini-api/docs/openai) and a local llama-server
 speak the same wire protocol, so provider selection is pure config
 (jobapply.config.llm_profile_config) — there is deliberately no per-provider
 subclass.
+
+response_schema.model_json_schema() emits standard JSON Schema with
+$defs/$ref for nested models (e.g. ResumeDocument's experience/education
+lists) — both OpenAI's and Gemini's json_schema structured-output modes are
+expected to support this, but it's worth checking against a real response
+the first time a new nested schema is added, since support for $ref depth
+varies across providers.
 """
 
 from __future__ import annotations

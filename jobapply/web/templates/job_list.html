@@ -1,12 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Jobs - JobApply{% endblock %}
 {% block content %}
-<h1>Jobs</h1>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <h1>Jobs</h1>
+  <form method="post" action="/pipeline/run-now">
+    <button type="submit">Run now</button>
+  </form>
+</div>
+
+{% if triggered %}<div class="flash flash-ok">Pipeline run started in the background — refresh in a bit to see results.</div>{% endif %}
 
 <div class="card">
   <span class="muted">
     {% for s, n in counts.items() %}{{ s }}: {{ n }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
-    {% if not counts %}No jobs found yet. Runs happen automatically on the configured schedule.{% endif %}
+    {% if not counts %}No jobs found yet. Runs happen automatically on the configured schedule, or click "Run now".{% endif %}
   </span>
 </div>
 

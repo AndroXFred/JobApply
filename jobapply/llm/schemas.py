@@ -1,9 +1,4 @@
-"""Structured LLM output schemas.
-
-Only Agent 1's output (JobEvaluation) is needed for Phase 1. Agent 2's
-TailoredResume and Agent 2b's FabricationReport schemas land in Phase 2
-alongside the rest of the tailoring pipeline.
-"""
+"""Structured LLM output schemas."""
 
 from __future__ import annotations
 
@@ -29,3 +24,18 @@ class JobEvaluation(BaseModel):
     rationale: str
     red_flags: list[RedFlag] = Field(default_factory=list)
     recommendation: Literal["pursue", "reject"]
+
+
+class ClaimVerdict(BaseModel):
+    claim: str
+    verdict: Literal["supported", "unsupported"]
+    master_source_ref: str | None = None
+
+
+class FabricationCheckResult(BaseModel):
+    """Agent 2b's output. `passed` is deliberately not part of this schema -
+    it's derived in code from the claims list so the LLM can't self-report
+    an inconsistent verdict (e.g. passed=true alongside an unsupported claim).
+    """
+
+    claims: list[ClaimVerdict] = Field(default_factory=list)

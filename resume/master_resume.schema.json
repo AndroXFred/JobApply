@@ -1,0 +1,180 @@
+{
+  "$defs": {
+    "ContactInfo": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "email": {
+          "title": "Email",
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "links": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Links",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "email"
+      ],
+      "title": "ContactInfo",
+      "type": "object"
+    },
+    "EducationEntry": {
+      "properties": {
+        "institution": {
+          "title": "Institution",
+          "type": "string"
+        },
+        "degree": {
+          "title": "Degree",
+          "type": "string"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "End Date"
+        }
+      },
+      "required": [
+        "institution",
+        "degree"
+      ],
+      "title": "EducationEntry",
+      "type": "object"
+    },
+    "ExperienceEntry": {
+      "properties": {
+        "company": {
+          "title": "Company",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "start_date": {
+          "title": "Start Date",
+          "type": "string"
+        },
+        "end_date": {
+          "title": "End Date",
+          "type": "string"
+        },
+        "location": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location"
+        },
+        "bullets": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Bullets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "company",
+        "title",
+        "start_date",
+        "end_date"
+      ],
+      "title": "ExperienceEntry",
+      "type": "object"
+    },
+    "ResumeConstraints": {
+      "properties": {
+        "requires_visa_sponsorship": {
+          "default": false,
+          "title": "Requires Visa Sponsorship",
+          "type": "boolean"
+        },
+        "minimum_salary_usd": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minimum Salary Usd"
+        }
+      },
+      "title": "ResumeConstraints",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "contact": {
+      "$ref": "#/$defs/ContactInfo"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "skills": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Skills",
+      "type": "array"
+    },
+    "experience": {
+      "items": {
+        "$ref": "#/$defs/ExperienceEntry"
+      },
+      "title": "Experience",
+      "type": "array"
+    },
+    "education": {
+      "items": {
+        "$ref": "#/$defs/EducationEntry"
+      },
+      "title": "Education",
+      "type": "array"
+    },
+    "constraints": {
+      "$ref": "#/$defs/ResumeConstraints"
+    }
+  },
+  "required": [
+    "contact",
+    "summary"
+  ],
+  "title": "ResumeDocument",
+  "type": "object"
+}

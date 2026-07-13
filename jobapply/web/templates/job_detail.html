@@ -14,6 +14,35 @@
   <p class="muted">First seen {{ job.first_seen_at.strftime('%Y-%m-%d %H:%M') if job.first_seen_at }} &middot; last seen {{ job.last_seen_at.strftime('%Y-%m-%d %H:%M') if job.last_seen_at }}</p>
 </div>
 
+{% if job.status == 'pending_approval' %}
+<div class="card">
+  <h3>Awaiting your decision</h3>
+  <p class="muted">Review the tailored resume below against the job description, then approve or reject. Approving does not submit the application yet — that's Agent 3, and isn't wired up until Phase 4.</p>
+  <form class="inline" method="post" action="/jobs/{{ job.id }}/approve">
+    <button type="submit">Approve</button>
+  </form>
+  <form class="inline" method="post" action="/jobs/{{ job.id }}/reject">
+    <button type="submit" class="secondary">Reject</button>
+  </form>
+</div>
+{% endif %}
+
+<div class="card">
+  <h3>Tailored resume</h3>
+  {% for t in tailored_resumes %}
+  <div style="padding: 0.5rem 0; {% if not loop.last %}border-bottom: 1px solid var(--border);{% endif %}">
+    <p>
+      {% if t.fabrication_check_passed %}<span class="badge badge-approved">fabrication check passed</span>{% else %}<span class="badge badge-rejected">fabrication check failed</span>{% endif %}
+      <span class="muted">{{ t.llm_model }} &middot; {{ t.created_at.strftime('%Y-%m-%d %H:%M') if t.created_at }}</span>
+    </p>
+    {% if t.has_pdf %}<p><a href="/jobs/{{ job.id }}/resume.pdf" target="_blank">Open tailored resume PDF &rarr;</a></p>{% endif %}
+    {% if t.fabrication_check_notes %}<p class="muted" style="white-space: pre-wrap;">{{ t.fabrication_check_notes }}</p>{% endif %}
+  </div>
+  {% else %}
+  <p class="muted">Not tailored yet.</p>
+  {% endfor %}
+</div>
+
 <div class="card">
   <h3>Evaluations</h3>
   {% for e in evaluations %}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="resume.css">
+</head>
+<body>
+  <header>
+    <h1>{{ resume.contact.name }}</h1>
+    <p class="contact-line">
+      {{ resume.contact.email }}{% if resume.contact.location %} &middot; {{ resume.contact.location }}{% endif %}
+      {% for link in resume.contact.links %} &middot; {{ link }}{% endfor %}
+    </p>
+  </header>
+
+  <section>
+    <p class="summary">{{ resume.summary }}</p>
+  </section>
+
+  {% if resume.skills %}
+  <section>
+    <h2>Skills</h2>
+    <p class="skills">{{ resume.skills | join(' &middot; ') }}</p>
+  </section>
+  {% endif %}
+
+  {% if resume.experience %}
+  <section>
+    <h2>Experience</h2>
+    {% for job in resume.experience %}
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-title">{{ job.title }}, {{ job.company }}</span>
+        <span class="entry-dates">{{ job.start_date }} &ndash; {{ job.end_date }}{% if job.location %} &middot; {{ job.location }}{% endif %}</span>
+      </div>
+      <ul>
+        {% for bullet in job.bullets %}<li>{{ bullet }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  {% if resume.education %}
+  <section>
+    <h2>Education</h2>
+    {% for edu in resume.education %}
+    <div class="entry">
+      <div class="entry-header">
+        <span class="entry-title">{{ edu.degree }}, {{ edu.institution }}</span>
+        {% if edu.end_date %}<span class="entry-dates">{{ edu.end_date }}</span>{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+</body>
+</html>

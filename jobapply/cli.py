@@ -18,6 +18,13 @@ def _cmd_run_finder(_args: argparse.Namespace) -> None:
     print(f"Finder run complete: {stats}")
 
 
+def _cmd_run_tailor(args: argparse.Namespace) -> None:
+    from jobapply.agents.tailor import run_tailor
+
+    stats = run_tailor(job_id=args.job_id)
+    print(f"Tailor run complete: {stats}")
+
+
 def _cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -33,6 +40,10 @@ def main() -> None:
     subparsers.add_parser("run-finder", help="Run Agent 1 once (find + score jobs)").set_defaults(
         func=_cmd_run_finder
     )
+
+    tailor_parser = subparsers.add_parser("run-tailor", help="Run Agent 2 + 2b once (tailor + audit resumes)")
+    tailor_parser.add_argument("--job-id", type=int, default=None, help="Tailor only this job (default: all pending_tailor jobs)")
+    tailor_parser.set_defaults(func=_cmd_run_tailor)
 
     serve_parser = subparsers.add_parser("serve", help="Run the web dashboard + scheduler")
     serve_parser.add_argument("--host", default="0.0.0.0")

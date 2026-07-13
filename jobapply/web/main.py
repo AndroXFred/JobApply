@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    run_migrations()
     if config.is_setup_complete():
         reschedule_finder()
     scheduler.start()
@@ -30,20 +29,26 @@ async def lifespan(app: FastAPI):
 
 
 def create_app() -> FastAPI:
+    # Run before anything reads settings (e.g. the cookie-security check
+    # below) - migrations are otherwise only guaranteed by the async
+    # lifespan, which runs too late for that synchronous read.
+    run_migrations()
+
     app = FastAPI(title="JobApply", lifespan=lifespan)
 
     static_dir = Path(__file__).parent / "static"
     static_dir.mkdir(exist_ok=True)
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-    from jobapply.web.routers import auth as auth_router
-    from jobapply.web.routers import jobs, settings, setup
+    from jobapply.web.routers import approvals, auth as auth_router
+    from jobapply.web.routers import jobs, pipeline, settings, setup
 
     app.include_router(auth_router.router)
     app.include_router(setup.router)
     app.include_router(settings.router)
     app.include_router(jobs.router)
-    # pipeline.py (manual "Run Now" + approve/reject) lands in Phase 3
+    app.include_router(pipeline.router)
+    app.include_router(approvals.router)
 
     @app.middleware("http")
     async def _gate(request: Request, call_next):
@@ -69,7 +74,12 @@ def create_app() -> FastAPI:
         # .env for a stable session across app restarts.
         secret = secrets.token_hex(32)
         logger.warning("SECRET_KEY not set; using an ephemeral session secret for this run only.")
-    app.add_middleware(SessionMiddleware, secret_key=secret)
+    # Secure cookie only over https - dashboard.base_url flips to your public
+    # Cloudflare Tunnel hostname once that's set up (see Settings). This is
+    # read once at process start, so changing dashboard.base_url later needs
+    # an app restart to take effect on the cookie flag.
+    https_only = (config.get_setting("dashboard.base_url") or "").startswith("https://")
+    app.add_middleware(SessionMiddleware, secret_key=secret, https_only=https_only)
 
     return app
 
