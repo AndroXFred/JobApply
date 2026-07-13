@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} at {{ job.company }} - JobApply{% endblock %}
+{% block content %}
+<p><a href="/jobs">&larr; back to jobs</a></p>
+<h1>{{ job.title }}</h1>
+<h3 class="muted">{{ job.company }} &middot; {{ job.location or 'location unspecified' }} &middot; {{ job.remote_type or 'unknown' }}</h3>
+
+<div class="card">
+  <span class="badge badge-{{ job.status }}">{{ job.status }}</span>
+  <span class="muted">source: {{ job.source }}</span>
+  {% if job.duplicate_of_job_id %}<span class="muted"> &middot; duplicate of job #{{ job.duplicate_of_job_id }}</span>{% endif %}
+  <p><a href="{{ job.url }}" target="_blank" rel="noopener">Original posting &rarr;</a></p>
+  {% if job.salary_min or job.salary_max %}<p class="muted">Salary: {{ job.salary_min or '?' }} - {{ job.salary_max or '?' }}</p>{% endif %}
+  <p class="muted">First seen {{ job.first_seen_at.strftime('%Y-%m-%d %H:%M') if job.first_seen_at }} &middot; last seen {{ job.last_seen_at.strftime('%Y-%m-%d %H:%M') if job.last_seen_at }}</p>
+</div>
+
+<div class="card">
+  <h3>Evaluations</h3>
+  {% for e in evaluations %}
+  <div style="padding: 0.5rem 0; {% if not loop.last %}border-bottom: 1px solid var(--border);{% endif %}">
+    <p><strong>Fit score: {{ e.fit_score }}</strong> &middot; {{ e.recommendation }} &middot; <span class="muted">{{ e.llm_model }} &middot; {{ e.created_at.strftime('%Y-%m-%d %H:%M') if e.created_at }}</span></p>
+    {% if e.red_flags %}<p>{% for f in e.red_flags %}<span class="badge">{{ f }}</span> {% endfor %}</p>{% endif %}
+    <p>{{ e.rationale }}</p>
+  </div>
+  {% else %}
+  <p class="muted">Not evaluated yet.</p>
+  {% endfor %}
+</div>
+
+<div class="card">
+  <h3>Status history</h3>
+  <table>
+    <thead><tr><th>When</th><th>Change</th><th>By</th><th>Note</th></tr></thead>
+    <tbody>
+      {% for h in history %}
+      <tr>
+        <td class="muted">{{ h.changed_at.strftime('%Y-%m-%d %H:%M') if h.changed_at }}</td>
+        <td>{{ h.from_status or '-' }} &rarr; {{ h.to_status }}</td>
+        <td>{{ h.changed_by }}</td>
+        <td class="muted">{{ h.note or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h3>Job description</h3>
+  <p style="white-space: pre-wrap;">{{ job.description_raw or 'No description available.' }}</p>
+</div>
+{% endblock %}

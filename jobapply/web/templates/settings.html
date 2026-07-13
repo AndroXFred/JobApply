@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Settings - JobApply{% endblock %}
+{% block content %}
+<h1>Settings</h1>
+{% if saved %}<div class="flash flash-ok">Saved.</div>{% endif %}
+
+<form method="post" action="/settings">
+  <div class="card">
+    <h3>LLM</h3>
+    <div class="field">
+      <label>Profile</label>
+      <select name="llm.profile">
+        <option value="gemini" {% if values['llm.profile'] == 'gemini' %}selected{% endif %}>Gemini (cloud)</option>
+        <option value="local" {% if values['llm.profile'] == 'local' %}selected{% endif %}>Local (OpenAI-compatible server)</option>
+      </select>
+    </div>
+    <div class="field"><label>Gemini API key</label><input type="password" name="llm.gemini.api_key" placeholder="leave blank to keep unchanged"></div>
+    <div class="field"><label>Gemini base URL</label><input type="text" name="llm.gemini.base_url" value="{{ values['llm.gemini.base_url'] }}"></div>
+    <div class="field"><label>Local server base URL</label><input type="text" name="llm.local.base_url" value="{{ values['llm.local.base_url'] }}"></div>
+    <div class="field"><label>Local server API key</label><input type="password" name="llm.local.api_key" placeholder="leave blank to keep unchanged"></div>
+  </div>
+
+  <div class="card">
+    <h3>Job sources</h3>
+    <div class="field"><label><input type="checkbox" name="sources.jsearch.enabled" {% if values['sources.jsearch.enabled'] == 'true' %}checked{% endif %}> JSearch (RapidAPI) enabled</label></div>
+    <div class="field"><label>RapidAPI key</label><input type="password" name="sources.jsearch.api_key" placeholder="leave blank to keep unchanged"></div>
+    <div class="field"><label>JSearch query</label><input type="text" name="sources.jsearch.query" value="{{ values['sources.jsearch.query'] }}"></div>
+    <div class="field"><label>JSearch location</label><input type="text" name="sources.jsearch.location" value="{{ values['sources.jsearch.location'] }}"></div>
+    <div class="field"><label><input type="checkbox" name="sources.jsearch.remote_jobs_only" {% if values['sources.jsearch.remote_jobs_only'] == 'true' %}checked{% endif %}> Remote jobs only</label></div>
+
+    <div class="field"><label><input type="checkbox" name="sources.greenhouse.enabled" {% if values['sources.greenhouse.enabled'] == 'true' %}checked{% endif %}> Greenhouse enabled</label></div>
+    <div class="field"><label>Greenhouse board tokens (comma-separated)</label><input type="text" name="sources.greenhouse.boards" value="{{ values['sources.greenhouse.boards'] }}"></div>
+
+    <div class="field"><label><input type="checkbox" name="sources.lever.enabled" {% if values['sources.lever.enabled'] == 'true' %}checked{% endif %}> Lever enabled</label></div>
+    <div class="field"><label>Lever site names (comma-separated)</label><input type="text" name="sources.lever.boards" value="{{ values['sources.lever.boards'] }}"></div>
+
+    <div class="field"><label><input type="checkbox" name="sources.ashby.enabled" {% if values['sources.ashby.enabled'] == 'true' %}checked{% endif %}> Ashby enabled</label></div>
+    <div class="field"><label>Ashby job-board names (comma-separated)</label><input type="text" name="sources.ashby.boards" value="{{ values['sources.ashby.boards'] }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Scoring</h3>
+    <div class="field"><label>Minimum fit score to tailor a resume (0-100)</label><input type="number" name="scoring.fit_score_threshold" min="0" max="100" value="{{ values['scoring.fit_score_threshold'] }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Approval notifications (ntfy)</h3>
+    <div class="field"><label>ntfy base URL</label><input type="text" name="notify.ntfy.base_url" value="{{ values['notify.ntfy.base_url'] }}"></div>
+    <div class="field"><label>ntfy topic</label><input type="password" name="notify.ntfy.topic" placeholder="leave blank to keep unchanged"></div>
+    <div class="field"><label>ntfy auth token</label><input type="password" name="notify.ntfy.auth_token" placeholder="leave blank to keep unchanged"></div>
+  </div>
+
+  <div class="card">
+    <h3>Schedule &amp; dashboard</h3>
+    <div class="field"><label>Dashboard base URL</label><input type="text" name="dashboard.base_url" value="{{ values['dashboard.base_url'] }}"></div>
+    <div class="field"><label>Finder cron expression</label><input type="text" name="scheduler.finder_cron" value="{{ values['scheduler.finder_cron'] }}"></div>
+    <div class="field"><label>Timezone</label><input type="text" name="scheduler.timezone" value="{{ values['scheduler.timezone'] }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Resume &amp; Playwright</h3>
+    <div class="field"><label>Master resume path</label><input type="text" name="resume.master_path" value="{{ values['resume.master_path'] }}"></div>
+    <div class="field"><label><input type="checkbox" name="playwright.headless" {% if values['playwright.headless'] == 'true' %}checked{% endif %}> Run browser automation headless</label></div>
+    <div class="field"><label>Screenshot evidence directory</label><input type="text" name="playwright.screenshot_dir" value="{{ values['playwright.screenshot_dir'] }}"></div>
+  </div>
+
+  <button type="submit">Save settings</button>
+</form>
+
+<div class="card">
+  <h3>Change password</h3>
+  {% if password_error %}<div class="flash flash-error">{{ password_error }}</div>{% endif %}
+  <form method="post" action="/settings/password">
+    <div class="field"><label>Current password</label><input type="password" name="current_password" required></div>
+    <div class="field"><label>New password</label><input type="password" name="new_password" required></div>
+    <button type="submit" class="secondary">Change password</button>
+  </form>
+</div>
+{% endblock %}

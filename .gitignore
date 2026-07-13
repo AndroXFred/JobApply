@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+
+# runtime data — local, personal
+data/
+resume/master_resume.yaml
+.env
+
+# editors
+.vscode/
+.idea/

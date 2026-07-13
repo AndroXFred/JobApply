@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Setup - JobApply{% endblock %}
+{% block content %}
+<h1>Set up JobApply</h1>
+<p class="muted">One-time setup. Everything here is stored locally and editable later from the Settings page.</p>
+
+{% if errors %}
+<div class="flash flash-error">
+  <ul style="margin:0; padding-left: 1.2rem;">
+    {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="/setup">
+  <div class="card">
+    <h3>Your account</h3>
+    <div class="field"><label>Email</label><input type="email" name="email" value="{{ values.email or '' }}" required></div>
+    <div class="field"><label>Display name</label><input type="text" name="display_name" value="{{ values.display_name or '' }}" required></div>
+    <div class="field"><label>Password</label><input type="password" name="password" required></div>
+  </div>
+
+  <div class="card">
+    <h3>LLM</h3>
+    <div class="field">
+      <label>Profile</label>
+      <select name="llm_profile">
+        <option value="gemini" {% if values.llm_profile == 'gemini' or not values.llm_profile %}selected{% endif %}>Gemini (cloud)</option>
+        <option value="local" {% if values.llm_profile == 'local' %}selected{% endif %}>Local (OpenAI-compatible server)</option>
+      </select>
+    </div>
+    <div class="field"><label>Gemini API key</label><input type="password" name="gemini_api_key" placeholder="required if profile is Gemini"></div>
+    <div class="field"><label>Local server base URL</label><input type="text" name="local_base_url" value="{{ values.local_base_url or 'http://localhost:8080/v1' }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Job sources</h3>
+    <p class="muted">Configure at least one.</p>
+    <div class="field"><label>RapidAPI key (JSearch)</label><input type="password" name="rapidapi_key" placeholder="optional"></div>
+    <div class="field"><label>JSearch query</label><input type="text" name="jsearch_query" value="{{ values.jsearch_query or 'software engineer remote' }}"></div>
+    <div class="field"><label>JSearch location (optional)</label><input type="text" name="jsearch_location" value="{{ values.jsearch_location or '' }}"></div>
+    <div class="field"><label>Greenhouse board tokens (comma-separated)</label><input type="text" name="greenhouse_boards" value="{{ values.greenhouse_boards or '' }}" placeholder="acme,examplecorp"></div>
+    <div class="field"><label>Lever site names (comma-separated)</label><input type="text" name="lever_boards" value="{{ values.lever_boards or '' }}"></div>
+    <div class="field"><label>Ashby job-board names (comma-separated)</label><input type="text" name="ashby_boards" value="{{ values.ashby_boards or '' }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Scoring</h3>
+    <div class="field"><label>Minimum fit score to tailor a resume (0-100)</label><input type="number" name="fit_score_threshold" min="0" max="100" value="{{ values.fit_score_threshold or '70' }}"></div>
+  </div>
+
+  <div class="card">
+    <h3>Approval notifications (ntfy)</h3>
+    <div class="field"><label>ntfy base URL</label><input type="text" name="ntfy_base_url" value="{{ values.ntfy_base_url or 'https://ntfy.sh' }}"></div>
+    <div class="field"><label>ntfy topic</label><input type="password" name="ntfy_topic" placeholder="pick a hard-to-guess topic name" required></div>
+    <div class="field"><label>ntfy auth token (optional, for self-hosted)</label><input type="password" name="ntfy_auth_token"></div>
+  </div>
+
+  <div class="card">
+    <h3>Schedule</h3>
+    <div class="field"><label>Dashboard base URL</label><input type="text" name="dashboard_base_url" value="{{ values.dashboard_base_url or 'http://localhost:8000' }}"></div>
+    <div class="field"><label>Finder cron expression</label><input type="text" name="finder_cron" value="{{ values.finder_cron or '0 8-22/3 * * *' }}"></div>
+    <div class="field"><label>Timezone (e.g. America/Sao_Paulo)</label><input type="text" name="timezone" value="{{ values.timezone or 'UTC' }}" required></div>
+  </div>
+
+  <button type="submit">Finish setup</button>
+</form>
+{% endblock %}

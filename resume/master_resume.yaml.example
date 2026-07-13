@@ -1,0 +1,45 @@
+# Copy this file to resume/master_resume.yaml and fill in your real resume.
+# master_resume.yaml is gitignored - it's personal data, never committed.
+#
+# Phase 1 (Agent 1) reads this as free-form context for fit scoring.
+# Phase 2 (Agent 2) will formalize this into a validated schema for
+# resume-tailoring and PDF rendering - keep it reasonably structured now
+# so that transition is smooth, but the exact shape isn't load-bearing yet.
+
+contact:
+  name: "Your Name"
+  email: "you@example.com"
+  location: "City, Country"
+  links:
+    - "https://linkedin.com/in/you"
+    - "https://github.com/you"
+
+summary: >
+  One or two sentences describing your professional focus and years of
+  experience - this frames how Agent 1 judges seniority/fit.
+
+skills:
+  - Python
+  - FastAPI
+  - PostgreSQL
+
+experience:
+  - company: "Example Corp"
+    title: "Senior Software Engineer"
+    start_date: "2022-01"
+    end_date: "present"
+    location: "Remote"
+    bullets:
+      - "Description of a real, verifiable accomplishment with a metric where you have one."
+      - "Another real accomplishment."
+
+education:
+  - institution: "State University"
+    degree: "B.S. Computer Science"
+    end_date: "2018"
+
+constraints:
+  # Anything Agent 1 should treat as a hard filter or red-flag trigger,
+  # e.g. sponsorship needs, minimum comp, timezone limits.
+  requires_visa_sponsorship: false
+  minimum_salary_usd: null

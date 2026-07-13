@@ -1,0 +1,66 @@
+# Reference for what the Settings page / /setup wizard configures.
+# At runtime, jobapply reads from the `settings` DB table, not this file.
+# This file only seeds defaults on a brand-new database and documents the
+# available fields for headless/scripted installs.
+
+llm:
+  profile: gemini # gemini | local
+  profiles:
+    gemini:
+      base_url: https://generativelanguage.googleapis.com/v1beta/openai/
+      api_key_env: GEMINI_API_KEY
+      models:
+        finder: gemini-2.5-flash-lite
+        tailor: gemini-2.5-flash
+        fabrication_check: gemini-2.5-flash
+    local:
+      base_url: http://localhost:8080/v1
+      api_key_env: LOCAL_LLM_API_KEY
+      models:
+        finder: local-model
+        tailor: local-model
+        fabrication_check: local-model
+
+sources:
+  jsearch:
+    enabled: true
+    api_key_env: RAPIDAPI_KEY
+    host: jsearch.p.rapidapi.com
+    query: "software engineer remote"
+    date_posted: week
+    remote_jobs_only: true
+  greenhouse:
+    enabled: true
+    boards: "" # comma-separated board tokens, e.g. "acme,examplecorp" - set on the Settings page
+  lever:
+    enabled: true
+    boards: "" # comma-separated Lever site names
+  ashby:
+    enabled: true
+    boards: "" # comma-separated Ashby job-board names
+
+scoring:
+  fit_score_threshold: 70
+
+notify:
+  ntfy:
+    base_url: https://ntfy.sh
+    topic_env: NTFY_TOPIC
+    auth_token_env: NTFY_TOKEN
+
+dashboard:
+  base_url: http://localhost:8000
+  host: 0.0.0.0
+  port: 8000
+  app_password_env: DASHBOARD_PASSWORD
+
+scheduler:
+  finder_cron: "0 8-22/3 * * *" # every 3h, 8am-8pm, no overnight runs
+  timezone: "UTC" # set to your real local timezone at /setup
+
+resume:
+  master_path: resume/master_resume.yaml
+
+playwright:
+  headless: true
+  screenshot_dir: data/evidence
