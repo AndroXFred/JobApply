@@ -19,8 +19,16 @@ def _migration_0001_init(conn: Connection) -> None:
     Base.metadata.create_all(bind=conn)
 
 
+def _migration_0002_pipeline_runs(conn: Connection) -> None:
+    # create_all only creates tables that don't yet exist, so re-running it
+    # after adding PipelineRun to models.py picks up just that new table on
+    # a database that already ran 0001_init - existing tables are untouched.
+    Base.metadata.create_all(bind=conn)
+
+
 MIGRATIONS: list[tuple[str, callable]] = [
     ("0001_init", _migration_0001_init),
+    ("0002_pipeline_runs", _migration_0002_pipeline_runs),
 ]
 
 

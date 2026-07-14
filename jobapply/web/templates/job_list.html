@@ -9,11 +9,41 @@
 </div>
 
 {% if triggered %}<div class="flash flash-ok">Pipeline run started in the background — refresh in a bit to see results.</div>{% endif %}
+{% if resume_missing %}<div class="flash flash-error">No master resume yet — Agent 1 can't score jobs without one. <a href="/resume">Add your resume &rarr;</a></div>{% endif %}
+
+<div class="card">
+  <h3>Last run</h3>
+  {% if last_run %}
+  <p class="muted">
+    {{ last_run.trigger }} &middot; started {{ last_run.started_at.strftime('%Y-%m-%d %H:%M') if last_run.started_at }}
+    {% if last_run.finished_at %} &middot; finished {{ last_run.finished_at.strftime('%Y-%m-%d %H:%M') }}{% else %} &middot; still running{% endif %}
+  </p>
+  <table>
+    <thead><tr><th>Stage</th><th>Result</th></tr></thead>
+    <tbody>
+      {% for stage in last_run.stages %}
+      <tr>
+        <td>{{ stage.name }}</td>
+        {% if stage.error %}
+        <td><span class="badge badge-rejected">FAILED</span> <span class="muted">{{ stage.error }}</span></td>
+        {% elif stage.stats %}
+        <td><span class="badge badge-approved">ok</span> <span class="muted">{% for k, v in stage.stats.items() %}{{ k }}: {{ v }}{% if not loop.last %}, {% endif %}{% endfor %}</span></td>
+        {% else %}
+        <td class="muted">-</td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No runs yet. Runs happen automatically on the configured schedule, or click "Run now".</p>
+  {% endif %}
+</div>
 
 <div class="card">
   <span class="muted">
     {% for s, n in counts.items() %}{{ s }}: {{ n }}{% if not loop.last %} &middot; {% endif %}{% endfor %}
-    {% if not counts %}No jobs found yet. Runs happen automatically on the configured schedule, or click "Run now".{% endif %}
+    {% if not counts %}No jobs found yet.{% endif %}
   </span>
 </div>
 

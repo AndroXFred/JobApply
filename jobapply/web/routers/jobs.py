@@ -4,8 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 
-from jobapply.db.models import Application, Job
+from jobapply.db.models import Application, Job, PipelineRun
 from jobapply.db.session import session_scope
+from jobapply.resume.loader import resume_exists
 from jobapply.web import auth
 from jobapply.web.templates_env import templates
 
@@ -40,6 +41,22 @@ def job_list(
     user_id: int = Depends(auth.require_login),
 ):
     with session_scope() as session:
+        last_run_row = session.scalar(select(PipelineRun).order_by(PipelineRun.started_at.desc()))
+        last_run = (
+            {
+                "trigger": last_run_row.trigger,
+                "started_at": last_run_row.started_at,
+                "finished_at": last_run_row.finished_at,
+                "stages": [
+                    {"name": "finder", "stats": last_run_row.finder_stats, "error": last_run_row.finder_error},
+                    {"name": "tailor", "stats": last_run_row.tailor_stats, "error": last_run_row.tailor_error},
+                    {"name": "applier", "stats": last_run_row.applier_stats, "error": last_run_row.applier_error},
+                ],
+            }
+            if last_run_row
+            else None
+        )
+
         jobs = session.scalars(select(Job).order_by(Job.first_seen_at.desc())).all()
         counts: dict[str, int] = {}
         rows = []
@@ -78,6 +95,8 @@ def job_list(
             "status_filter": status,
             "min_score": min_score,
             "triggered": triggered == "1",
+            "resume_missing": not resume_exists(),
+            "last_run": last_run,
         },
     )
 

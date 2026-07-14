@@ -41,7 +41,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     from jobapply.web.routers import approvals, auth as auth_router
-    from jobapply.web.routers import jobs, pipeline, settings, setup
+    from jobapply.web.routers import jobs, pipeline, resume, settings, setup
 
     app.include_router(auth_router.router)
     app.include_router(setup.router)
@@ -49,6 +49,7 @@ def create_app() -> FastAPI:
     app.include_router(jobs.router)
     app.include_router(pipeline.router)
     app.include_router(approvals.router)
+    app.include_router(resume.router)
 
     @app.middleware("http")
     async def _gate(request: Request, call_next):

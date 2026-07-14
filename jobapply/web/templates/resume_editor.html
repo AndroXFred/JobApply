@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Resume - JobApply{% endblock %}
+{% block content %}
+<h1>Master resume</h1>
+<p class="muted">
+  Edited as YAML, validated on save against the same schema Agent 2 uses for tailoring.
+  Everything here should be real and verifiable - Agent 2b audits tailored resumes against
+  exactly this content, so anything embellished here flows straight through as "supported."
+</p>
+
+{% if saved %}<div class="flash flash-ok">Saved.</div>{% endif %}
+{% if errors %}
+<div class="flash flash-error">
+  <strong>Couldn't save:</strong>
+  <ul style="margin: 0.4rem 0 0; padding-left: 1.2rem;">
+    {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="/resume">
+  <div class="field">
+    <textarea name="yaml_content" rows="32" style="width: 100%; font-family: ui-monospace, monospace; font-size: 0.85rem;" spellcheck="false">{{ yaml_content }}</textarea>
+  </div>
+  <button type="submit">Save resume</button>
+</form>
+{% endblock %}

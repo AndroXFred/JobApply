@@ -3,6 +3,7 @@ route (manual trigger) so both paths run the exact same job function."""
 
 from __future__ import annotations
 
+import datetime as dt
 import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -12,6 +13,8 @@ from jobapply import config
 from jobapply.agents.applier import run_applier
 from jobapply.agents.finder import run_finder
 from jobapply.agents.tailor import run_tailor
+from jobapply.db.models import PipelineRun
+from jobapply.db.session import session_scope
 
 logger = logging.getLogger(__name__)
 
@@ -19,34 +22,48 @@ scheduler = AsyncIOScheduler()
 PIPELINE_JOB_ID = "pipeline"
 
 
-def run_pipeline_job() -> dict[str, dict[str, int] | None]:
+def run_pipeline_job(trigger_source: str = "cron") -> dict[str, dict[str, int] | None]:
     """Finder, then tailor, then applier, in one run. A job goes from
     'found' all the way to 'pending_approval' (with an ntfy push)
     unattended; applier only ever acts on jobs already in 'approved' status
     - i.e. ones you've explicitly tapped Approve on - so the human review
-    gate stays intact even though this chains everything after it."""
-    try:
-        finder_stats = run_finder()
-        logger.info("finder run complete: %s", finder_stats)
-    except Exception:
-        logger.exception("finder run failed")
-        finder_stats = None
+    gate stays intact even though this chains everything after it.
 
-    try:
-        tailor_stats = run_tailor()
-        logger.info("tailor run complete: %s", tailor_stats)
-    except Exception:
-        logger.exception("tailor run failed")
-        tailor_stats = None
+    Every run is recorded as a PipelineRun row (stats + any error per
+    stage), so a failure is visible on the dashboard instead of only in the
+    server log."""
+    started_at = dt.datetime.now(dt.timezone.utc)
+    results: dict[str, tuple[dict[str, int] | None, str | None]] = {}
 
-    try:
-        applier_stats = run_applier()
-        logger.info("applier run complete: %s", applier_stats)
-    except Exception:
-        logger.exception("applier run failed")
-        applier_stats = None
+    # Built here (not at module level) so tests can monkeypatch
+    # scheduler.run_finder/run_tailor/run_applier and have it take effect -
+    # a module-level tuple would freeze in the original function objects.
+    stages = (("finder", run_finder), ("tailor", run_tailor), ("applier", run_applier))
+    for name, fn in stages:
+        try:
+            stats = fn()
+            logger.info("%s run complete: %s", name, stats)
+            results[name] = (stats, None)
+        except Exception as exc:
+            logger.exception("%s run failed", name)
+            results[name] = (None, str(exc))
 
-    return {"finder": finder_stats, "tailor": tailor_stats, "applier": applier_stats}
+    with session_scope() as session:
+        session.add(
+            PipelineRun(
+                trigger=trigger_source,
+                started_at=started_at,
+                finished_at=dt.datetime.now(dt.timezone.utc),
+                finder_stats=results["finder"][0],
+                finder_error=results["finder"][1],
+                tailor_stats=results["tailor"][0],
+                tailor_error=results["tailor"][1],
+                applier_stats=results["applier"][0],
+                applier_error=results["applier"][1],
+            )
+        )
+
+    return {name: stats for name, (stats, _error) in results.items()}
 
 
 def reschedule_finder() -> None:
@@ -55,10 +72,15 @@ def reschedule_finder() -> None:
     if scheduler.get_job(PIPELINE_JOB_ID):
         scheduler.remove_job(PIPELINE_JOB_ID)
     scheduler.add_job(
-        run_pipeline_job, CronTrigger.from_crontab(cron, timezone=timezone), id=PIPELINE_JOB_ID
+        run_pipeline_job,
+        CronTrigger.from_crontab(cron, timezone=timezone),
+        id=PIPELINE_JOB_ID,
+        kwargs={"trigger_source": "cron"},
     )
 
 
 def trigger_pipeline_now() -> None:
     """Used by the dashboard's 'Run Now' button — runs once, immediately, outside the cron schedule."""
-    scheduler.add_job(run_pipeline_job, id=f"{PIPELINE_JOB_ID}-manual", replace_existing=True)
+    scheduler.add_job(
+        run_pipeline_job, id=f"{PIPELINE_JOB_ID}-manual", replace_existing=True, kwargs={"trigger_source": "manual"}
+    )

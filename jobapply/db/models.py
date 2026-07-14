@@ -169,3 +169,22 @@ class Setting(Base):
     value: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_secret: Mapped[bool] = mapped_column(Boolean, default=False)
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+
+
+class PipelineRun(Base):
+    """One row per scheduled/manual pipeline run, so a failure (missing
+    resume, bad API key, network error, ...) is visible on the dashboard
+    instead of only in the server log."""
+
+    __tablename__ = "pipeline_runs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    trigger: Mapped[str] = mapped_column(String(20))  # cron | manual
+    started_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    finished_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    finder_stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    finder_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    tailor_stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    tailor_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    applier_stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    applier_error: Mapped[str | None] = mapped_column(Text, nullable=True)
