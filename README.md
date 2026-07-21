@@ -43,6 +43,13 @@ you to review before saving (nothing is saved automatically; you always
 get a chance to check it first, since this file is the ground truth Agent
 2b checks every tailored resume against).
 
+## Remote access
+
+By default the dashboard only listens on your local network. To reach it
+(and tap ntfy approval links) from anywhere, see
+[docs/remote-access.md](docs/remote-access.md) for a Cloudflare Tunnel
+walkthrough - no port-forwarding required.
+
 ## Locked out?
 
 There's no email-based password reset (this is a single-user local app, no
