@@ -37,6 +37,16 @@ python -m jobapply.cli serve
 Open `http://localhost:8000` and complete the `/setup` wizard (API keys,
 job boards, fit threshold, schedule). Nothing runs until that's done.
 
+## Locked out?
+
+There's no email-based password reset (this is a single-user local app, no
+SMTP setup needed) - reset directly against the database instead:
+
+```bash
+python -m jobapply.cli list-users        # see your account's email
+python -m jobapply.cli reset-password --email you@example.com
+```
+
 ## Development
 
 ```bash

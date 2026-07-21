@@ -53,6 +53,21 @@ def get_user_display(user_id: int) -> dict | None:
         return {"email": user.email, "display_name": user.display_name} if user else None
 
 
+def list_users() -> list[dict]:
+    with session_scope() as session:
+        users = session.scalars(select(User).order_by(User.id)).all()
+        return [
+            {"id": u.id, "email": u.email, "display_name": u.display_name, "created_at": u.created_at}
+            for u in users
+        ]
+
+
+def get_user_id_by_email(email: str) -> int | None:
+    with session_scope() as session:
+        user = session.scalar(select(User).where(User.email == email))
+        return user.id if user else None
+
+
 def current_user_id(request: Request) -> int | None:
     return request.session.get(SESSION_USER_KEY)
 

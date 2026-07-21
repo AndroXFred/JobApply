@@ -39,6 +39,40 @@ def _cmd_run_gap_analysis(_args: argparse.Namespace) -> None:
     print(f"Gap analysis complete: {stats}")
 
 
+def _cmd_list_users(_args: argparse.Namespace) -> None:
+    from jobapply.web.auth import list_users
+
+    users = list_users()
+    if not users:
+        print("No users yet - complete /setup in the browser first.")
+        return
+    for u in users:
+        print(f"id={u['id']}  email={u['email']}  name={u['display_name']}  created={u['created_at']}")
+
+
+def _cmd_reset_password(args: argparse.Namespace) -> None:
+    import getpass
+
+    from jobapply.web.auth import get_user_id_by_email, update_password
+
+    user_id = get_user_id_by_email(args.email)
+    if user_id is None:
+        print(f"No user found with email {args.email!r}. Run `jobapply list-users` to see existing accounts.")
+        raise SystemExit(1)
+
+    password = getpass.getpass("New password: ")
+    confirm = getpass.getpass("Confirm new password: ")
+    if password != confirm:
+        print("Passwords didn't match - nothing changed.")
+        raise SystemExit(1)
+    if len(password) < 8:
+        print("Password must be at least 8 characters - nothing changed.")
+        raise SystemExit(1)
+
+    update_password(user_id, password)
+    print(f"Password updated for {args.email}. You can log in now.")
+
+
 def _cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -66,6 +100,16 @@ def main() -> None:
     subparsers.add_parser("run-gap-analysis", help="Run the Gap Advisor once").set_defaults(
         func=_cmd_run_gap_analysis
     )
+
+    subparsers.add_parser("list-users", help="List existing dashboard accounts (email, name)").set_defaults(
+        func=_cmd_list_users
+    )
+
+    reset_parser = subparsers.add_parser(
+        "reset-password", help="Reset a dashboard account's password (run this if you're locked out)"
+    )
+    reset_parser.add_argument("--email", required=True, help="Email of the account to reset (see `list-users`)")
+    reset_parser.set_defaults(func=_cmd_reset_password)
 
     serve_parser = subparsers.add_parser("serve", help="Run the web dashboard + scheduler")
     serve_parser.add_argument("--host", default="0.0.0.0")
