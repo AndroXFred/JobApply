@@ -26,9 +26,21 @@ def _migration_0002_pipeline_runs(conn: Connection) -> None:
     Base.metadata.create_all(bind=conn)
 
 
+def _migration_0003_gap_advisor(conn: Connection) -> None:
+    # Unlike a brand-new table, create_all() never ALTERs an existing table,
+    # so adding a column to `evaluations` needs an explicit ALTER - guarded,
+    # since a fresh DB's 0001_init already created the column via the
+    # current models.py and re-adding it would error.
+    columns = {row[1] for row in conn.execute(text("PRAGMA table_info(evaluations)"))}
+    if "key_requirements" not in columns:
+        conn.execute(text("ALTER TABLE evaluations ADD COLUMN key_requirements JSON DEFAULT '[]'"))
+    Base.metadata.create_all(bind=conn)  # picks up the new gap_reports table
+
+
 MIGRATIONS: list[tuple[str, callable]] = [
     ("0001_init", _migration_0001_init),
     ("0002_pipeline_runs", _migration_0002_pipeline_runs),
+    ("0003_gap_advisor", _migration_0003_gap_advisor),
 ]
 
 

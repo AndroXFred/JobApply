@@ -24,6 +24,7 @@ class JobEvaluation(BaseModel):
     rationale: str
     red_flags: list[RedFlag] = Field(default_factory=list)
     recommendation: Literal["pursue", "reject"]
+    key_requirements: list[str] = Field(default_factory=list)
 
 
 class ClaimVerdict(BaseModel):
@@ -39,3 +40,15 @@ class FabricationCheckResult(BaseModel):
     """
 
     claims: list[ClaimVerdict] = Field(default_factory=list)
+
+
+class GapRecommendation(BaseModel):
+    skill: str  # must match one of the gap skills given in the prompt
+    summary: str
+    certifications: list[str] = Field(default_factory=list)
+    courses: list[str] = Field(default_factory=list)
+    priority: Literal["high", "medium", "low"]
+
+
+class GapRecommendationResult(BaseModel):
+    recommendations: list[GapRecommendation] = Field(default_factory=list)

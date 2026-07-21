@@ -26,7 +26,7 @@ from jobapply.llm.schemas import FabricationCheckResult
 from jobapply.notify import ntfy
 from jobapply.resume.loader import load_master_resume
 from jobapply.resume.render import render_resume_pdf
-from jobapply.resume.schema import ResumeDocument
+from jobapply.resume.schema import ResumeDocument, resume_text_blob
 
 _PROMPT_DIR = Path(__file__).parent / "prompts"
 _NUMBER_RE = re.compile(r"\d[\d,]*(?:\.\d+)?")
@@ -36,22 +36,12 @@ def _read_prompt(name: str) -> str:
     return (_PROMPT_DIR / name).read_text()
 
 
-def _resume_text_blob(resume: ResumeDocument) -> str:
-    parts = [resume.summary, *resume.skills]
-    for exp in resume.experience:
-        parts.append(f"{exp.title} {exp.company} {exp.start_date} {exp.end_date} {exp.location or ''}")
-        parts.extend(exp.bullets)
-    for edu in resume.education:
-        parts.append(f"{edu.degree} {edu.institution} {edu.end_date or ''}")
-    return "\n".join(parts)
-
-
 def _numbers_in(text: str) -> set[str]:
     return {n.replace(",", "") for n in _NUMBER_RE.findall(text)}
 
 
 def _numeric_precheck(master: ResumeDocument, tailored: ResumeDocument) -> str | None:
-    unmatched = sorted(_numbers_in(_resume_text_blob(tailored)) - _numbers_in(_resume_text_blob(master)))
+    unmatched = sorted(_numbers_in(resume_text_blob(tailored)) - _numbers_in(resume_text_blob(master)))
     if not unmatched:
         return None
     return f"Numbers in the tailored resume with no match anywhere in the master resume: {', '.join(unmatched)}"

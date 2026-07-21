@@ -5,7 +5,7 @@ from fastapi.responses import RedirectResponse
 
 from jobapply import config
 from jobapply.web import auth
-from jobapply.web.scheduler import reschedule_finder
+from jobapply.web.scheduler import reschedule_finder, reschedule_gap_advisor
 from jobapply.web.templates_env import templates
 
 router = APIRouter()
@@ -16,10 +16,12 @@ _NON_SECRET_FIELDS = [
     "llm.gemini.model_finder",
     "llm.gemini.model_tailor",
     "llm.gemini.model_fabrication_check",
+    "llm.gemini.model_gap_advisor",
     "llm.local.base_url",
     "llm.local.model_finder",
     "llm.local.model_tailor",
     "llm.local.model_fabrication_check",
+    "llm.local.model_gap_advisor",
     "sources.jsearch.host",
     "sources.jsearch.query",
     "sources.jsearch.location",
@@ -31,6 +33,7 @@ _NON_SECRET_FIELDS = [
     "notify.ntfy.base_url",
     "dashboard.base_url",
     "scheduler.finder_cron",
+    "scheduler.gap_advisor_cron",
     "scheduler.timezone",
     "resume.master_path",
     "playwright.screenshot_dir",
@@ -79,6 +82,7 @@ async def settings_submit(request: Request, user_id: int = Depends(auth.require_
         if value:
             config.set_setting(key, value)
     reschedule_finder()
+    reschedule_gap_advisor()
     return RedirectResponse(url="/settings?saved=1", status_code=303)
 
 

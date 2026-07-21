@@ -25,7 +25,7 @@ from jobapply.sources.registry import ALL_SOURCES
 
 logger = logging.getLogger(__name__)
 
-PROMPT_VERSION = "1"
+PROMPT_VERSION = "2"  # bumped: added key_requirements extraction for the Gap Advisor
 _SYSTEM_PROMPT_PATH = Path(__file__).parent / "prompts" / "finder_system.md"
 
 
@@ -127,6 +127,7 @@ def run_finder() -> dict[str, int]:
                         rationale=result.rationale,
                         red_flags=list(result.red_flags),
                         recommendation=result.recommendation,
+                        key_requirements=list(result.key_requirements),
                         llm_model=model,
                         prompt_version=PROMPT_VERSION,
                     )

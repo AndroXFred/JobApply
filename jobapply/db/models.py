@@ -85,6 +85,7 @@ class Evaluation(Base):
     rationale: Mapped[str] = mapped_column(Text)
     red_flags: Mapped[list[str]] = mapped_column(JSON, default=list)
     recommendation: Mapped[str] = mapped_column(String(20))  # pursue | reject
+    key_requirements: Mapped[list[str]] = mapped_column(JSON, default=list)  # feeds the Gap Advisor
     llm_model: Mapped[str] = mapped_column(String(100))
     prompt_version: Mapped[str] = mapped_column(String(20))
 
@@ -188,3 +189,20 @@ class PipelineRun(Base):
     tailor_error: Mapped[str | None] = mapped_column(Text, nullable=True)
     applier_stats: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     applier_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class GapReport(Base):
+    """Output of the Gap Advisor: recurring skill/qualification gaps
+    between the master resume and recent job postings, with recommended
+    certifications/courses. Strictly advisory - nothing here ever writes
+    back to the resume."""
+
+    __tablename__ = "gap_reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    trigger: Mapped[str] = mapped_column(String(20))  # cron | manual
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+    jobs_analyzed_count: Mapped[int] = mapped_column(Integer)
+    gaps: Mapped[list[dict]] = mapped_column(JSON, default=list)
+    llm_model: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)  # visible on /gaps instead of only the log

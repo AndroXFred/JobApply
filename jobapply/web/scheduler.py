@@ -12,6 +12,7 @@ from apscheduler.triggers.cron import CronTrigger
 from jobapply import config
 from jobapply.agents.applier import run_applier
 from jobapply.agents.finder import run_finder
+from jobapply.agents.gap_advisor import run_gap_analysis
 from jobapply.agents.tailor import run_tailor
 from jobapply.db.models import PipelineRun
 from jobapply.db.session import session_scope
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 scheduler = AsyncIOScheduler()
 PIPELINE_JOB_ID = "pipeline"
+GAP_ADVISOR_JOB_ID = "gap_advisor"
 
 
 def run_pipeline_job(trigger_source: str = "cron") -> dict[str, dict[str, int] | None]:
@@ -83,4 +85,26 @@ def trigger_pipeline_now() -> None:
     """Used by the dashboard's 'Run Now' button — runs once, immediately, outside the cron schedule."""
     scheduler.add_job(
         run_pipeline_job, id=f"{PIPELINE_JOB_ID}-manual", replace_existing=True, kwargs={"trigger_source": "manual"}
+    )
+
+
+def reschedule_gap_advisor() -> None:
+    """Independent schedule from the job-search pipeline above - the Gap
+    Advisor runs weekly by default, not every few hours."""
+    cron = config.get_setting("scheduler.gap_advisor_cron") or "0 9 * * 1"
+    timezone = config.get_setting("scheduler.timezone") or "UTC"
+    if scheduler.get_job(GAP_ADVISOR_JOB_ID):
+        scheduler.remove_job(GAP_ADVISOR_JOB_ID)
+    scheduler.add_job(
+        run_gap_analysis,
+        CronTrigger.from_crontab(cron, timezone=timezone),
+        id=GAP_ADVISOR_JOB_ID,
+        kwargs={"trigger": "cron"},
+    )
+
+
+def trigger_gap_analysis_now() -> None:
+    """Used by the dashboard's 'Run now' button on the Gaps page."""
+    scheduler.add_job(
+        run_gap_analysis, id=f"{GAP_ADVISOR_JOB_ID}-manual", replace_existing=True, kwargs={"trigger": "manual"}
     )

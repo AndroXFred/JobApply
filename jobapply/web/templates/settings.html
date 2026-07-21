@@ -16,8 +16,10 @@
     </div>
     <div class="field"><label>Gemini API key</label><input type="password" name="llm.gemini.api_key" placeholder="leave blank to keep unchanged"></div>
     <div class="field"><label>Gemini base URL</label><input type="text" name="llm.gemini.base_url" value="{{ values['llm.gemini.base_url'] }}"></div>
+    <div class="field"><label>Gap Advisor model (Gemini)</label><input type="text" name="llm.gemini.model_gap_advisor" value="{{ values['llm.gemini.model_gap_advisor'] }}"></div>
     <div class="field"><label>Local server base URL</label><input type="text" name="llm.local.base_url" value="{{ values['llm.local.base_url'] }}"></div>
     <div class="field"><label>Local server API key</label><input type="password" name="llm.local.api_key" placeholder="leave blank to keep unchanged"></div>
+    <div class="field"><label>Gap Advisor model (local)</label><input type="text" name="llm.local.model_gap_advisor" value="{{ values['llm.local.model_gap_advisor'] }}"></div>
   </div>
 
   <div class="card">
@@ -54,6 +56,7 @@
     <h3>Schedule &amp; dashboard</h3>
     <div class="field"><label>Dashboard base URL</label><input type="text" name="dashboard.base_url" value="{{ values['dashboard.base_url'] }}"></div>
     <div class="field"><label>Finder cron expression</label><input type="text" name="scheduler.finder_cron" value="{{ values['scheduler.finder_cron'] }}"></div>
+    <div class="field"><label>Gap Advisor cron expression</label><input type="text" name="scheduler.gap_advisor_cron" value="{{ values['scheduler.gap_advisor_cron'] }}"></div>
     <div class="field"><label>Timezone</label><input type="text" name="scheduler.timezone" value="{{ values['scheduler.timezone'] }}"></div>
   </div>
 

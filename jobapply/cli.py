@@ -32,6 +32,13 @@ def _cmd_run_applier(args: argparse.Namespace) -> None:
     print(f"Applier run complete: {stats}")
 
 
+def _cmd_run_gap_analysis(_args: argparse.Namespace) -> None:
+    from jobapply.agents.gap_advisor import run_gap_analysis
+
+    stats = run_gap_analysis(trigger="manual")
+    print(f"Gap analysis complete: {stats}")
+
+
 def _cmd_serve(args: argparse.Namespace) -> None:
     import uvicorn
 
@@ -55,6 +62,10 @@ def main() -> None:
     applier_parser = subparsers.add_parser("run-applier", help="Run Agent 3 once (submit approved applications)")
     applier_parser.add_argument("--job-id", type=int, default=None, help="Apply only to this job (default: all approved jobs)")
     applier_parser.set_defaults(func=_cmd_run_applier)
+
+    subparsers.add_parser("run-gap-analysis", help="Run the Gap Advisor once").set_defaults(
+        func=_cmd_run_gap_analysis
+    )
 
     serve_parser = subparsers.add_parser("serve", help="Run the web dashboard + scheduler")
     serve_parser.add_argument("--host", default="0.0.0.0")

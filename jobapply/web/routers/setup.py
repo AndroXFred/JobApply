@@ -97,9 +97,10 @@ def setup_submit(
     config.set_setting("scheduler.finder_cron", finder_cron)
     config.set_setting("scheduler.timezone", timezone)
 
-    from jobapply.web.scheduler import reschedule_finder
+    from jobapply.web.scheduler import reschedule_finder, reschedule_gap_advisor
 
     reschedule_finder()
+    reschedule_gap_advisor()
 
     request.session[auth.SESSION_USER_KEY] = user_id
     return RedirectResponse(url="/jobs", status_code=303)

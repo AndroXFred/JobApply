@@ -46,3 +46,15 @@ class ResumeDocument(BaseModel):
     experience: list[ExperienceEntry] = Field(default_factory=list)
     education: list[EducationEntry] = Field(default_factory=list)
     constraints: ResumeConstraints = Field(default_factory=ResumeConstraints)
+
+
+def resume_text_blob(resume: ResumeDocument) -> str:
+    """Flattens the resume to searchable free text - used by Agent 2's
+    numeric fabrication pre-check and the Gap Advisor's skill matching."""
+    parts = [resume.summary, *resume.skills]
+    for exp in resume.experience:
+        parts.append(f"{exp.title} {exp.company} {exp.start_date} {exp.end_date} {exp.location or ''}")
+        parts.extend(exp.bullets)
+    for edu in resume.education:
+        parts.append(f"{edu.degree} {edu.institution} {edu.end_date or ''}")
+    return "\n".join(parts)

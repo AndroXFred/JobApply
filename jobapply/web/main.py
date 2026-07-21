@@ -13,7 +13,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from jobapply import config
 from jobapply.db.migrate import run_migrations
-from jobapply.web.scheduler import reschedule_finder, scheduler
+from jobapply.web.scheduler import reschedule_finder, reschedule_gap_advisor, scheduler
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     if config.is_setup_complete():
         reschedule_finder()
+        reschedule_gap_advisor()
     scheduler.start()
     yield
     scheduler.shutdown(wait=False)
@@ -41,7 +42,7 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
     from jobapply.web.routers import approvals, auth as auth_router
-    from jobapply.web.routers import jobs, pipeline, resume, settings, setup
+    from jobapply.web.routers import gaps, jobs, pipeline, resume, settings, setup
 
     app.include_router(auth_router.router)
     app.include_router(setup.router)
@@ -50,6 +51,7 @@ def create_app() -> FastAPI:
     app.include_router(pipeline.router)
     app.include_router(approvals.router)
     app.include_router(resume.router)
+    app.include_router(gaps.router)
 
     @app.middleware("http")
     async def _gate(request: Request, call_next):

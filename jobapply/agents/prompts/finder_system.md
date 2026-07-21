@@ -28,3 +28,10 @@ well-fitting posting:
 recommendation is "pursue" only if the posting is a reasonable fit AND has
 no disqualifying red flags; otherwise "reject." A low fit_score with
 recommendation "pursue" is a contradiction - do not produce that.
+
+Also extract key_requirements: the specific skills, tools, technologies,
+certifications, or qualifications this posting asks for (required or
+preferred) - e.g. "Kubernetes", "AWS", "5+ years distributed systems",
+"PMP certification". Short phrases, not full sentences. Include these
+regardless of whether the candidate already has them - this list is used
+later to spot patterns across many postings, not just for this one score.

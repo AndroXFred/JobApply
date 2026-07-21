@@ -30,11 +30,13 @@ SETTING_SPECS: dict[str, SettingSpec] = {
     "llm.gemini.model_finder": SettingSpec("gemini-2.5-flash-lite"),
     "llm.gemini.model_tailor": SettingSpec("gemini-2.5-flash"),
     "llm.gemini.model_fabrication_check": SettingSpec("gemini-2.5-flash"),
+    "llm.gemini.model_gap_advisor": SettingSpec("gemini-2.5-flash"),
     "llm.local.base_url": SettingSpec("http://localhost:8080/v1"),
     "llm.local.api_key": SettingSpec("not-needed", is_secret=True),
     "llm.local.model_finder": SettingSpec("local-model"),
     "llm.local.model_tailor": SettingSpec("local-model"),
     "llm.local.model_fabrication_check": SettingSpec("local-model"),
+    "llm.local.model_gap_advisor": SettingSpec("local-model"),
     "sources.jsearch.enabled": SettingSpec("true"),
     "sources.jsearch.api_key": SettingSpec(None, is_secret=True),
     "sources.jsearch.host": SettingSpec("jsearch.p.rapidapi.com"),
@@ -54,6 +56,7 @@ SETTING_SPECS: dict[str, SettingSpec] = {
     "notify.ntfy.auth_token": SettingSpec(None, is_secret=True),
     "dashboard.base_url": SettingSpec("http://localhost:8000"),
     "scheduler.finder_cron": SettingSpec("0 8-22/3 * * *"),
+    "scheduler.gap_advisor_cron": SettingSpec("0 9 * * 1"),  # weekly, Monday 9am
     "scheduler.timezone": SettingSpec("UTC"),
     "resume.master_path": SettingSpec("resume/master_resume.yaml"),
     "playwright.headless": SettingSpec("true"),
@@ -117,6 +120,7 @@ def llm_profile_config(profile: str | None = None) -> dict[str, str]:
         "model_finder": get_setting(f"{prefix}.model_finder") or "",
         "model_tailor": get_setting(f"{prefix}.model_tailor") or "",
         "model_fabrication_check": get_setting(f"{prefix}.model_fabrication_check") or "",
+        "model_gap_advisor": get_setting(f"{prefix}.model_gap_advisor") or "",
     }
 
 

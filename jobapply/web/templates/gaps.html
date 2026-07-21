@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Skill Gaps - JobApply{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <h1>Skill Gaps</h1>
+  <form method="post" action="/gaps/run-now">
+    <button type="submit">Run now</button>
+  </form>
+</div>
+<p class="muted">
+  Recurring skills/qualifications across recently evaluated postings that aren't in your master resume yet.
+  Purely advisory — nothing here is ever written back to your resume. Decide what to actually pursue, then
+  add it yourself on the <a href="/resume">Resume page</a> once you've genuinely earned it.
+</p>
+
+{% if triggered %}<div class="flash flash-ok">Gap analysis started in the background — refresh in a bit to see results.</div>{% endif %}
+
+<div class="card">
+  <h3>Latest report</h3>
+  {% if not latest %}
+  <p class="muted">No reports yet. Runs happen weekly on the configured schedule, or click "Run now".</p>
+  {% elif latest.error %}
+  <p class="muted">{{ latest.created_at.strftime('%Y-%m-%d %H:%M') if latest.created_at }} &middot; {{ latest.trigger }}</p>
+  <div class="flash flash-error">FAILED: {{ latest.error }}</div>
+  {% else %}
+  <p class="muted">
+    {{ latest.created_at.strftime('%Y-%m-%d %H:%M') if latest.created_at }} &middot; {{ latest.trigger }}
+    &middot; analyzed {{ latest.jobs_analyzed_count }} postings &middot; {{ latest.gaps | length }} gap(s) found
+  </p>
+  {% if not latest.gaps %}
+  <p class="muted">No recurring gaps found — either not enough postings evaluated yet, or your resume already covers what's being asked for.</p>
+  {% endif %}
+  {% for gap in latest.gaps %}
+  <div style="padding: 0.6rem 0; {% if not loop.last %}border-bottom: 1px solid var(--border);{% endif %}">
+    <p>
+      <strong>{{ gap.skill }}</strong>
+      <span class="muted">seen in {{ gap.frequency }} posting(s)</span>
+      {% if gap.recommendation %}<span class="badge">{{ gap.recommendation.priority }} priority</span>{% endif %}
+    </p>
+    {% if gap.example_jobs %}<p class="muted">e.g. {{ gap.example_jobs[0].title }} at {{ gap.example_jobs[0].company }}</p>{% endif %}
+    {% if gap.recommendation %}
+    <p>{{ gap.recommendation.summary }}</p>
+    {% if gap.recommendation.certifications %}<p class="muted">Certifications: {{ gap.recommendation.certifications | join(', ') }}</p>{% endif %}
+    {% if gap.recommendation.courses %}<p class="muted">Courses: {{ gap.recommendation.courses | join(', ') }}</p>{% endif %}
+    {% else %}
+    <p class="muted">No specific recommendation generated for this gap.</p>
+    {% endif %}
+  </div>
+  {% endfor %}
+  {% endif %}
+</div>
+
+{% if history %}
+<div class="card">
+  <h3>History</h3>
+  <table>
+    <thead><tr><th>When</th><th>Trigger</th><th>Analyzed</th><th>Result</th></tr></thead>
+    <tbody>
+      {% for report in history %}
+      <tr>
+        <td class="muted">{{ report.created_at.strftime('%Y-%m-%d %H:%M') if report.created_at }}</td>
+        <td>{{ report.trigger }}</td>
+        <td>{{ report.jobs_analyzed_count }}</td>
+        <td>{% if report.error %}<span class="badge badge-rejected">FAILED</span>{% else %}{{ report.gaps | length }} gap(s){% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}
