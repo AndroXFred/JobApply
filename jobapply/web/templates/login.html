@@ -15,11 +15,12 @@
     </div>
     <button type="submit">Log in</button>
   </form>
-  <p class="muted" style="margin-top: 1rem;">
-    Forgot your email or password? On the machine running JobApply, run
-    <code>python -m jobapply.cli list-users</code> to see your account, then
-    <code>python -m jobapply.cli reset-password --email you@example.com</code>
-    to set a new password.
-  </p>
+  <div class="muted" style="margin-top: 1rem;">
+    Forgot your email or password? On the machine running JobApply:
+    <ul style="margin: 0.4rem 0 0; padding-left: 1.2rem;">
+      <li><code>python -m jobapply.cli list-users</code> — see your account's email</li>
+      <li><code>python -m jobapply.cli reset-password --email you@example.com</code> — set a new password</li>
+    </ul>
+  </div>
 </div>
 {% endblock %}

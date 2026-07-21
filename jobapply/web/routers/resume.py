@@ -1,19 +1,24 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import yaml
-from fastapi import APIRouter, Depends, Form, Query, Request
+from fastapi import APIRouter, Depends, Form, Query, Request, UploadFile
 from fastapi.responses import RedirectResponse
 from pydantic import ValidationError
 
+from jobapply.resume.importer import ResumeImportError, import_resume_yaml
 from jobapply.resume.loader import resume_file_path, write_master_resume_yaml
 from jobapply.web import auth
 from jobapply.web.templates_env import templates
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 
 _EXAMPLE_PATH = Path("resume/master_resume.yaml.example")
+_MAX_IMPORT_SIZE = 10 * 1024 * 1024  # 10MB
 
 
 def _initial_content() -> str:
@@ -63,3 +68,56 @@ def resume_submit(request: Request, yaml_content: str = Form(...), user_id: int 
         )
 
     return RedirectResponse(url="/resume?saved=1", status_code=303)
+
+
+@router.post("/resume/import")
+async def resume_import(request: Request, file: UploadFile, user_id: int = Depends(auth.require_login)):
+    content = await file.read()
+
+    if len(content) > _MAX_IMPORT_SIZE:
+        return templates.TemplateResponse(
+            request,
+            "resume_editor.html",
+            {
+                "user_id": user_id,
+                "yaml_content": _initial_content(),
+                "errors": ["That file is too large (max 10MB)."],
+                "saved": False,
+            },
+            status_code=400,
+        )
+
+    try:
+        imported_yaml = import_resume_yaml(file.filename or "upload", content)
+    except ResumeImportError as exc:
+        return templates.TemplateResponse(
+            request,
+            "resume_editor.html",
+            {"user_id": user_id, "yaml_content": _initial_content(), "errors": [str(exc)], "saved": False},
+            status_code=400,
+        )
+    except Exception:
+        logger.exception("resume import failed for file %r", file.filename)
+        return templates.TemplateResponse(
+            request,
+            "resume_editor.html",
+            {
+                "user_id": user_id,
+                "yaml_content": _initial_content(),
+                "errors": ["Something went wrong reading that file. Check the server log for details."],
+                "saved": False,
+            },
+            status_code=400,
+        )
+
+    return templates.TemplateResponse(
+        request,
+        "resume_editor.html",
+        {
+            "user_id": user_id,
+            "yaml_content": imported_yaml,
+            "errors": [],
+            "saved": False,
+            "imported_filename": file.filename,
+        },
+    )

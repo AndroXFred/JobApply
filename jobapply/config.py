@@ -31,12 +31,14 @@ SETTING_SPECS: dict[str, SettingSpec] = {
     "llm.gemini.model_tailor": SettingSpec("gemini-2.5-flash"),
     "llm.gemini.model_fabrication_check": SettingSpec("gemini-2.5-flash"),
     "llm.gemini.model_gap_advisor": SettingSpec("gemini-2.5-flash"),
+    "llm.gemini.model_resume_import": SettingSpec("gemini-2.5-flash"),
     "llm.local.base_url": SettingSpec("http://localhost:8080/v1"),
     "llm.local.api_key": SettingSpec("not-needed", is_secret=True),
     "llm.local.model_finder": SettingSpec("local-model"),
     "llm.local.model_tailor": SettingSpec("local-model"),
     "llm.local.model_fabrication_check": SettingSpec("local-model"),
     "llm.local.model_gap_advisor": SettingSpec("local-model"),
+    "llm.local.model_resume_import": SettingSpec("local-model"),
     "sources.jsearch.enabled": SettingSpec("true"),
     "sources.jsearch.api_key": SettingSpec(None, is_secret=True),
     "sources.jsearch.host": SettingSpec("jsearch.p.rapidapi.com"),
@@ -121,6 +123,7 @@ def llm_profile_config(profile: str | None = None) -> dict[str, str]:
         "model_tailor": get_setting(f"{prefix}.model_tailor") or "",
         "model_fabrication_check": get_setting(f"{prefix}.model_fabrication_check") or "",
         "model_gap_advisor": get_setting(f"{prefix}.model_gap_advisor") or "",
+        "model_resume_import": get_setting(f"{prefix}.model_resume_import") or "",
     }
 
 

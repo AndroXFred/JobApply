@@ -37,6 +37,12 @@ python -m jobapply.cli serve
 Open `http://localhost:8000` and complete the `/setup` wizard (API keys,
 job boards, fit threshold, schedule). Nothing runs until that's done.
 
+Add your master resume on the **Resume** page - either paste/edit it as
+YAML directly, or upload a `.docx`/`.pdf` and it'll be transcribed in for
+you to review before saving (nothing is saved automatically; you always
+get a chance to check it first, since this file is the ground truth Agent
+2b checks every tailored resume against).
+
 ## Locked out?
 
 There's no email-based password reset (this is a single-user local app, no

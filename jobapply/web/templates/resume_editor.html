@@ -9,14 +9,23 @@
 </p>
 
 {% if saved %}<div class="flash flash-ok">Saved.</div>{% endif %}
+{% if imported_filename %}<div class="flash flash-ok">Imported from {{ imported_filename }} — review below, then Save. Nothing is saved yet.</div>{% endif %}
 {% if errors %}
 <div class="flash flash-error">
-  <strong>Couldn't save:</strong>
-  <ul style="margin: 0.4rem 0 0; padding-left: 1.2rem;">
+  <ul style="margin: 0; padding-left: 1.2rem;">
     {% for error in errors %}<li>{{ error }}</li>{% endfor %}
   </ul>
 </div>
 {% endif %}
+
+<div class="card">
+  <h3>Import from a file</h3>
+  <p class="muted">Upload a .docx or .pdf resume — it'll be transcribed into the editor below for you to review before saving. Nothing is saved automatically.</p>
+  <form method="post" action="/resume/import" enctype="multipart/form-data" style="display:flex; gap:1rem; align-items:center;">
+    <input type="file" name="file" accept=".docx,.pdf" required>
+    <button type="submit" class="secondary">Import</button>
+  </form>
+</div>
 
 <form method="post" action="/resume">
   <div class="field">
